@@ -1,0 +1,49 @@
+:toc:
+:project_id: next-working-day-micro-service
+:icons: font
+:source-highlighter: prettify
+
+This guide walks you through the process of building and running a docker image for next working day micro service built using Spring Boot.
+
+== Overview
+Next day service expose an endpoint `/next-working-day` with an optional `after` query parameter. Service returns next working day based on the date provided in `after` or use today's date if no date is provided.
+
+Returned date is calculated based on the bank holidays and non working days configured.
+
+`https://www.gov.uk/bank-holidays.json` is called to get list of UK bank holidays.
+
+*Saturday* and *Sunday* are  currently configured as non working days in `application.properties`.
+
+== What you'll need
+You will need java, maven and docker to run this application.
+
+== Running application
+=== Spring boot app
+Run `mvn spring-boot:run` to run next day service on port 8080.
+
+=== In a docker container
+Run `mvn package` to build a docker image `dwp/next-working-day-micro-service:1.0.0`.
+
+Run `docker run --name next-day-service -d -p 8080:8080 dwp/next-working-day-micro-service:1.0.0`. This should start the application in a docker container with name `next-day-service` on port 8080.
+
+Run `docker stop next-day-service` to stop the container.
+
+== Testing application
+* With a valid date
+----
+curl --request GET --url http://localhost:8080/next-working-day?after=2019-04-17
+----
+* Without date
+----
+curl --request GET --url http://localhost:8080/next-working-day
+----
+* With an invalid date
+----
+curl --request GET --url http://localhost:8080/next-working-day?after=1234
+----
+
+== Features to implement
+* Update service to return appropriate response where provided date is too far ahead in future and bank holiday api does not return any bank holidays for that year.
+* Update service to take region (England, Scotland etc.) as parameter so bank holidays can be checked for that particular region.
+* Update bank holidays service client to handle various http responses appropriately.
+* Provide a yaml file so service can be deployed in Kubernetes.
